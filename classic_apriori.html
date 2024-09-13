@@ -10,34 +10,33 @@
     <div class="container">
         <h1>Classic Apriori Algorithm</h1>
         <pre>
+#include "apriori.h"
+#include &lt;fstream&gt;
+#include &lt;sstream&gt;
+#include &lt;algorithm&gt;
+#include &lt;iostream&gt;
 
-   #include "apriori.h"
-#include <fstream>
-#include <sstream>
-#include <algorithm>
-#include <iostream>
-
-vector<vector<int>> readDataset(const string& filename) {
+vector&lt;vector&lt;int&gt;&gt; readDataset(const string& filename) {
     ifstream file(filename);
     string line;
-    vector<vector<int>> dataset;
+    vector&lt;vector&lt;int&gt;&gt; dataset;
 
     if (!file.is_open()) {
-        cerr << "Unable to open file" << endl;
+        cerr &lt;&lt; "Unable to open file" &lt;&lt; endl;
         return dataset;
     }
 
     while (getline(file, line)) {
         stringstream ss(line);
         string label;
-        vector<int> transaction;
+        vector&lt;int&gt; transaction;
         int item;
 
         // Read and ignore the transaction label
-        ss >> label;
+        ss &gt;&gt; label;
 
         // Read the items
-        while (ss >> item) {
+        while (ss &gt;&gt; item) {
             transaction.push_back(item);
         }
         dataset.push_back(transaction);
@@ -48,15 +47,15 @@ vector<vector<int>> readDataset(const string& filename) {
 }
 
 
-vector<set<int>> generateCandidates1(const vector<vector<int>>& dataset) {
-    set<int> allItems;
+vector&lt;set&lt;int&gt;&gt; generateCandidates1(const vector&lt;vector&lt;int&gt;&gt;& dataset) {
+    set&lt;int&gt; allItems;
     for (const auto& transaction : dataset) {
         for (int item : transaction) {
             allItems.insert(item);
         }
     }
 
-    vector<set<int>> candidates;
+    vector&lt;set&lt;int&gt;&gt; candidates;
     for (int item : allItems) {
         candidates.push_back({ item });
     }
@@ -64,13 +63,13 @@ vector<set<int>> generateCandidates1(const vector<vector<int>>& dataset) {
     return candidates;
 }
 
-vector<set<int>> generateCandidatesNext(const vector<set<int>>& frequentItemsets) {
-    vector<set<int>> candidates;
+vector&lt;set&lt;int&gt;&gt; generateCandidatesNext(const vector&lt;set&lt;int&gt;&gt;& frequentItemsets) {
+    vector&lt;set&lt;int&gt;&gt; candidates;
 
     int size = frequentItemsets.size();
-    for (int i = 0; i < size; ++i) {
-        for (int j = i + 1; j < size; ++j) {
-            set<int> candidate = frequentItemsets[i];
+    for (int i = 0; i &lt; size; ++i) {
+        for (int j = i + 1; j &lt; size; ++j) {
+            set&lt;int&gt; candidate = frequentItemsets[i];
             candidate.insert(frequentItemsets[j].begin(), frequentItemsets[j].end());
             if (candidate.size() == frequentItemsets[0].size() + 1) {
                 candidates.push_back(candidate);
@@ -81,11 +80,11 @@ vector<set<int>> generateCandidatesNext(const vector<set<int>>& frequentItemsets
     return candidates;
 }
 
-map<set<int>, int> countSupport(const vector<set<int>>& candidates, const vector<vector<int>>& dataset) {
-    map<set<int>, int> supportCount;
+map&lt;set&lt;int&gt;, int&gt; countSupport(const vector&lt;set&lt;int&gt;&gt;& candidates, const vector&lt;vector&lt;int&gt;&gt;& dataset) {
+    map&lt;set&lt;int&gt;, int&gt; supportCount;
 
     for (const auto& transaction : dataset) {
-        set<int> transactionSet(transaction.begin(), transaction.end());
+        set&lt;int&gt; transactionSet(transaction.begin(), transaction.end());
         for (const auto& candidate : candidates) {
             if (includes(transactionSet.begin(), transactionSet.end(), candidate.begin(), candidate.end())) {
                 supportCount[candidate]++;
@@ -96,11 +95,11 @@ map<set<int>, int> countSupport(const vector<set<int>>& candidates, const vector
     return supportCount;
 }
 
-vector<set<int>> pruneCandidates(const map<set<int>, int>& supportCount, int min_sup, int numTransactions) {
-    vector<set<int>> frequentItemsets;
+vector&lt;set&lt;int&gt;&gt; pruneCandidates(const map&lt;set&lt;int&gt;, int&gt;& supportCount, int min_sup, int numTransactions) {
+    vector&lt;set&lt;int&gt;&gt; frequentItemsets;
 
     for (const auto& pair : supportCount) {
-        if (pair.second >= min_sup) {
+        if (pair.second &gt;= min_sup) {
             frequentItemsets.push_back(pair.first);
         }
     }
@@ -108,23 +107,23 @@ vector<set<int>> pruneCandidates(const map<set<int>, int>& supportCount, int min
     return frequentItemsets;
 }
 
-void apriori(const vector<vector<int>>& dataset, int min_sup, vector<vector<set<int>>>& frequentItemsetsPerLevel) {
-    vector<set<int>> candidates1 = generateCandidates1(dataset);
-    map<set<int>, int> supportCount1 = countSupport(candidates1, dataset);
-    vector<set<int>> frequentItemsets1 = pruneCandidates(supportCount1, min_sup, dataset.size());
+void apriori(const vector&lt;vector&lt;int&gt;&gt;& dataset, int min_sup, vector&lt;vector&lt;set&lt;int&gt;&gt;&gt;& frequentItemsetsPerLevel) {
+    vector&lt;set&lt;int&gt;&gt; candidates1 = generateCandidates1(dataset);
+    map&lt;set&lt;int&gt;, int&gt; supportCount1 = countSupport(candidates1, dataset);
+    vector&lt;set&lt;int&gt;&gt; frequentItemsets1 = pruneCandidates(supportCount1, min_sup, dataset.size());
     frequentItemsetsPerLevel.push_back(frequentItemsets1);
 
     int k = 1;
     while (!frequentItemsetsPerLevel[k - 1].empty()) {
-        vector<set<int>> candidatesNext = generateCandidatesNext(frequentItemsetsPerLevel[k - 1]);
-        map<set<int>, int> supportCountNext = countSupport(candidatesNext, dataset);
-        vector<set<int>> frequentItemsetsNext = pruneCandidates(supportCountNext, min_sup, dataset.size());
+        vector&lt;set&lt;int&gt;&gt; candidatesNext = generateCandidatesNext(frequentItemsetsPerLevel[k - 1]);
+        map&lt;set&lt;int&gt;, int&gt; supportCountNext = countSupport(candidatesNext, dataset);
+        vector&lt;set&lt;int&gt;&gt; frequentItemsetsNext = pruneCandidates(supportCountNext, min_sup, dataset.size());
         frequentItemsetsPerLevel.push_back(frequentItemsetsNext);
         k++;
     }
 }
 
-double calculateSupport(const vector<set<int>>& transactions, const set<int>& itemset) {
+double calculateSupport(const vector&lt;set&lt;int&gt;&gt;& transactions, const set&lt;int&gt;& itemset) {
     int count = 0;
     for (const auto& transaction : transactions) {
         bool contains = true;
@@ -138,25 +137,25 @@ double calculateSupport(const vector<set<int>>& transactions, const set<int>& it
             ++count;
         }
     }
-    return static_cast<double>(count) / transactions.size();
+    return static_cast&lt;double&gt;(count) / transactions.size();
 }
 
 // Function to generate association rules
-void generateAssociationRules(const vector<vector<set<int>>>& frequentItemsetsPerLevel, double min_conf) {
-    cout << "Generating Association Rules..." << endl;
+void generateAssociationRules(const vector&lt;vector&lt;set&lt;int&gt;&gt;&gt;& frequentItemsetsPerLevel, double min_conf) {
+    cout &lt;&lt; "Generating Association Rules..." &lt;&lt; endl;
 
     // Iterate over all levels except the first (no rules from single items)
-    for (size_t i = 1; i < frequentItemsetsPerLevel.size(); ++i) {
+    for (size_t i = 1; i &lt; frequentItemsetsPerLevel.size(); ++i) {
         for (const auto& itemset : frequentItemsetsPerLevel[i]) {
             // Generate all non-empty subsets of the itemset
             int n = itemset.size();
-            vector<int> items(itemset.begin(), itemset.end());
-            for (int mask = 1; mask < (1 << n); ++mask) {
-                set<int> antecedent;
-                set<int> consequent = itemset;
+            vector&lt;int&gt; items(itemset.begin(), itemset.end());
+            for (int mask = 1; mask &lt; (1 &lt;&lt; n); ++mask) {
+                set&lt;int&gt; antecedent;
+                set&lt;int&gt; consequent = itemset;
 
-                for (int j = 0; j < n; ++j) {
-                    if (mask & (1 << j)) {
+                for (int j = 0; j &lt; n; ++j) {
+                    if (mask & (1 &lt;&lt; j)) {
                         antecedent.insert(items[j]);
                         consequent.erase(items[j]);
                     }
@@ -167,22 +166,23 @@ void generateAssociationRules(const vector<vector<set<int>>>& frequentItemsetsPe
                     double rule_support = calculateSupport(frequentItemsetsPerLevel[0], itemset);
                     double confidence = rule_support / antecedent_support;
 
-                    if (confidence >= min_conf) {
-                        cout << "Rule: {";
+                    if (confidence &gt;= min_conf) {
+                        cout &lt;&lt; "Rule: {";
                         for (int item : antecedent) {
-                            cout << item << " ";
+                            cout &lt;&lt; item &lt;&lt; " ";
                         }
-                        cout << "} -> {";
+                        cout &lt;&lt; "} -&gt; {";
                         for (int item : consequent) {
-                            cout << item << " ";
+                            cout &lt;&lt; item &lt;&lt; " ";
                         }
-                        cout << "} with confidence: " << confidence << endl;
+                        cout &lt;&lt; "} with confidence: " &lt;&lt; confidence &lt;&lt; endl;
                     }
                 }
             }
         }
     }
 }
+
 
      </pre>
     </div>
