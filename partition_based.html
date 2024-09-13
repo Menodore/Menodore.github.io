@@ -10,24 +10,24 @@
     <div class="container">
         <h1>Hash-Based Apriori Algorithm</h1>
         <pre>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <set>
-#include <map>
-#include <unordered_map>
-#include <sstream>
-#include <algorithm>
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;vector&gt;
+#include &lt;set&gt;
+#include &lt;map&gt;
+#include &lt;unordered_map&gt;
+#include &lt;sstream&gt;
+#include &lt;algorithm&gt;
 
 using namespace std;
 
-typedef set<int> Itemset;
+typedef set&lt;int&gt; Itemset;
 
 // Function to generate candidate itemsets of size k from frequent itemsets of size k-1
-vector<Itemset> generateCandidates(const vector<Itemset>& frequentItemsets, int k) {
-    vector<Itemset> candidates;
-    for (size_t i = 0; i < frequentItemsets.size(); ++i) {
-        for (size_t j = i + 1; j < frequentItemsets.size(); ++j) {
+vector&lt;Itemset&gt; generateCandidates(const vector&lt;Itemset&gt;& frequentItemsets, int k) {
+    vector&lt;Itemset&gt; candidates;
+    for (size_t i = 0; i &lt; frequentItemsets.size(); ++i) {
+        for (size_t j = i + 1; j &lt; frequentItemsets.size(); ++j) {
             Itemset candidate(frequentItemsets[i]);
             candidate.insert(frequentItemsets[j].begin(), frequentItemsets[j].end());
 
@@ -40,8 +40,8 @@ vector<Itemset> generateCandidates(const vector<Itemset>& frequentItemsets, int 
 }
 
 // Function to count support for itemsets
-map<Itemset, int> countSupport(const vector<Itemset>& transactions, const vector<Itemset>& candidates) {
-    map<Itemset, int> itemsetCounts;
+map&lt;Itemset, int&gt; countSupport(const vector&lt;Itemset&gt;& transactions, const vector&lt;Itemset&gt;& candidates) {
+    map&lt;Itemset, int&gt; itemsetCounts;
     for (const auto& transaction : transactions) {
         for (const auto& candidate : candidates) {
             if (includes(transaction.begin(), transaction.end(), candidate.begin(), candidate.end())) {
@@ -53,10 +53,10 @@ map<Itemset, int> countSupport(const vector<Itemset>& transactions, const vector
 }
 
 // Function to filter candidates by minimum support
-vector<Itemset> filterBySupport(const map<Itemset, int>& candidateCounts, int minSupport) {
-    vector<Itemset> frequentItemsets;
+vector&lt;Itemset&gt; filterBySupport(const map&lt;Itemset, int&gt;& candidateCounts, int minSupport) {
+    vector&lt;Itemset&gt; frequentItemsets;
     for (const auto& candidateCount : candidateCounts) {
-        if (candidateCount.second >= minSupport) {
+        if (candidateCount.second &gt;= minSupport) {
             frequentItemsets.push_back(candidateCount.first);
         }
     }
@@ -64,19 +64,19 @@ vector<Itemset> filterBySupport(const map<Itemset, int>& candidateCounts, int mi
 }
 
 // Function to find frequent itemsets in a partition
-vector<Itemset> findFrequentItemsets(const vector<Itemset>& transactions, int minSupport, const string& outFileName) {
+vector&lt;Itemset&gt; findFrequentItemsets(const vector&lt;Itemset&gt;& transactions, int minSupport, const string& outFileName) {
     // Step 1: Generate frequent 1-itemsets
     fstream outFile(outFileName);
-    map<int, int> itemCounts;
+    map&lt;int, int&gt; itemCounts;
     for (const auto& transaction : transactions) {
         for (int item : transaction) {
             itemCounts[item]++;
         }
     }
 
-    vector<Itemset> frequentItemsets;
+    vector&lt;Itemset&gt; frequentItemsets;
     for (const auto& itemCount : itemCounts) {
-        if (itemCount.second >= minSupport) {
+        if (itemCount.second &gt;= minSupport) {
             frequentItemsets.push_back({ itemCount.first });
         }
     }
@@ -84,20 +84,20 @@ vector<Itemset> findFrequentItemsets(const vector<Itemset>& transactions, int mi
     int k = 2;
     while (!frequentItemsets.empty()) {
         // Step 2: Generate candidate k-itemsets using the previous frequent itemsets
-        vector<Itemset> candidates = generateCandidates(frequentItemsets, k);
+        vector&lt;Itemset&gt; candidates = generateCandidates(frequentItemsets, k);
 
         // Step 3: Count the support for candidates and filter by minimum support
-        map<Itemset, int> candidateCounts = countSupport(transactions, candidates);
+        map&lt;Itemset, int&gt; candidateCounts = countSupport(transactions, candidates);
         frequentItemsets = filterBySupport(candidateCounts, minSupport);
 
         // Output the frequent itemsets of size k
         if (!frequentItemsets.empty()) {
-            outFile << "Frequent " << k << "-itemsets in partition: " << endl;
+            outFile &lt;&lt; "Frequent " &lt;&lt; k &lt;&lt; "-itemsets in partition: " &lt;&lt; endl;
             for (const auto& itemset : frequentItemsets) {
                 for (int item : itemset) {
-                    outFile << item << " ";
+                    outFile &lt;&lt; item &lt;&lt; " ";
                 }
-                outFile << endl;
+                outFile &lt;&lt; endl;
             }
         }
 
@@ -108,14 +108,14 @@ vector<Itemset> findFrequentItemsets(const vector<Itemset>& transactions, int mi
 }
 
 // Partition-based Apriori algorithm
-void partitionApriori(const vector<Itemset>& transactions, int globalMinSupport, int partitionSize, const string& outFileName) {
-    vector<Itemset> globalCandidates;
+void partitionApriori(const vector&lt;Itemset&gt;& transactions, int globalMinSupport, int partitionSize, const string& outFileName) {
+    vector&lt;Itemset&gt; globalCandidates;
     ofstream outFile(outFileName);
-    vector<vector<Itemset>> partitions;
+    vector&lt;vector&lt;Itemset&gt;&gt; partitions;
 
     // Step 1: Partition the dataset
-    for (size_t i = 0; i < transactions.size(); i += partitionSize) {
-        vector<Itemset> partition(transactions.begin() + i, transactions.begin() + min(i + partitionSize, transactions.size()));
+    for (size_t i = 0; i &lt; transactions.size(); i += partitionSize) {
+        vector&lt;Itemset&gt; partition(transactions.begin() + i, transactions.begin() + min(i + partitionSize, transactions.size()));
         partitions.push_back(partition);
     }
 
@@ -123,7 +123,7 @@ void partitionApriori(const vector<Itemset>& transactions, int globalMinSupport,
     for (const auto& partition : partitions) {
         int localMinSupport = (globalMinSupport * partition.size()) / transactions.size();
         if (localMinSupport == 0) localMinSupport = 1; // Ensure minSupport is at least 1
-        vector<Itemset> localFrequentItemsets = findFrequentItemsets(partition, localMinSupport, "out_partition.txt");
+        vector&lt;Itemset&gt; localFrequentItemsets = findFrequentItemsets(partition, localMinSupport, "out_partition.txt");
         globalCandidates.insert(globalCandidates.end(), localFrequentItemsets.begin(), localFrequentItemsets.end());
     }
 
@@ -132,25 +132,25 @@ void partitionApriori(const vector<Itemset>& transactions, int globalMinSupport,
     globalCandidates.erase(unique(globalCandidates.begin(), globalCandidates.end()), globalCandidates.end());
 
     // Step 4: Count global support for candidate itemsets
-    map<Itemset, int> globalCounts = countSupport(transactions, globalCandidates);
+    map&lt;Itemset, int&gt; globalCounts = countSupport(transactions, globalCandidates);
 
     // Step 5: Filter globally frequent itemsets
-    vector<Itemset> globalFrequentItemsets = filterBySupport(globalCounts, globalMinSupport);
+    vector&lt;Itemset&gt; globalFrequentItemsets = filterBySupport(globalCounts, globalMinSupport);
 
     // Step 6: Output globally frequent itemsets
-    outFile << "Global Frequent Itemsets: " << endl;
+    outFile &lt;&lt; "Global Frequent Itemsets: " &lt;&lt; endl;
     for (const auto& itemset : globalFrequentItemsets) {
         for (int item : itemset) {
-            outFile << item << " ";
+            outFile &lt;&lt; item &lt;&lt; " ";
         }
-        outFile << " (Support: " << globalCounts[itemset] << ")" << endl;
+        outFile &lt;&lt; " (Support: " &lt;&lt; globalCounts[itemset] &lt;&lt; ")" &lt;&lt; endl;
     }
 }
 
 
-vector<Itemset> readTransactions(const string& filename) {
+vector&lt;Itemset&gt; readTransactions(const string& filename) {
     ifstream file(filename);
-    vector<Itemset> transactions;
+    vector&lt;Itemset&gt; transactions;
     string line;
 
     if (file.is_open()) {
@@ -158,7 +158,7 @@ vector<Itemset> readTransactions(const string& filename) {
             stringstream ss(line);
             Itemset transaction;
             int item;
-            while (ss >> item) {
+            while (ss &gt;&gt; item) {
                 transaction.insert(item);
             }
             transactions.push_back(transaction);
@@ -166,7 +166,7 @@ vector<Itemset> readTransactions(const string& filename) {
         file.close();
     }
     else {
-        cerr << "Unable to open file" << endl;
+        cerr &lt;&lt; "Unable to open file" &lt;&lt; endl;
     }
 
     return transactions;
@@ -178,14 +178,14 @@ int main() {
     int globalMinSupport = 40;  
     int partitionSize = 9;   
 
-    vector<Itemset> transactions = readTransactions(filename);
+    vector&lt;Itemset&gt; transactions = readTransactions(filename);
 
     partitionApriori(transactions, globalMinSupport, partitionSize, outFileName);
 
     return 0;
 }
 
-        </pre>
+  </pre>
     </div>
 </body>
 </html>
