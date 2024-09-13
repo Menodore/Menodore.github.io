@@ -21,7 +21,7 @@
 
 using namespace std;
 
-typedef set<int> Itemset;
+typedef set&lt;int&gt; Itemset;
 
 
 int hashItemset(const Itemset& itemset) {
@@ -33,16 +33,16 @@ int hashItemset(const Itemset& itemset) {
 }
 
 
-vector<Itemset> generateHashBasedCandidates(const vector<Itemset>& transactions, map<int, int>& hashBuckets, int minSupport) {
-    map<pair<int, int>, int> candidateCounts;
+vector&lt;Itemset&gt; generateHashBasedCandidates(const vector&lt;Itemset&gt;& transactions, map&lt;int, int&gt;& hashBuckets, int minSupport) {
+    map&lt;pair&lt;int, int&gt;, int&gt; candidateCounts;
 
     for (const auto& transaction : transactions) {
-        vector<int> items(transaction.begin(), transaction.end());
+        vector&lt;int&gt; items(transaction.begin(), transaction.end());
         int n = items.size();
 
         
-        for (int i = 0; i < n; ++i) {
-            for (int j = i + 1; j < n; ++j) {
+        for (int i = 0; i &lt; n; ++i) {
+            for (int j = i + 1; j &lt; n; ++j) {
                 Itemset candidate = { items[i], items[j] };
                 int hashValue = hashItemset(candidate);
                 hashBuckets[hashValue]++;
@@ -53,13 +53,13 @@ vector<Itemset> generateHashBasedCandidates(const vector<Itemset>& transactions,
     }
 
     
-    vector<Itemset> frequentItemsets;
+    vector&lt;Itemset&gt; frequentItemsets;
     for (const auto& candidate : candidateCounts) {
         Itemset itemset = { candidate.first.first, candidate.first.second };
         int hashValue = hashItemset(itemset);
 
         // count exceeds the minimum support
-        if (hashBuckets[hashValue] >= minSupport) {
+        if (hashBuckets[hashValue] &gt;= minSupport) {
             frequentItemsets.push_back(itemset);
         }
     }
@@ -68,8 +68,8 @@ vector<Itemset> generateHashBasedCandidates(const vector<Itemset>& transactions,
 }
 
 
-map<Itemset, int> countSupport(const vector<Itemset>& transactions, const vector<Itemset>& candidates) {
-    map<Itemset, int> itemsetCounts;
+map&lt;Itemset, int&gt; countSupport(const vector&lt;Itemset&gt;& transactions, const vector&lt;Itemset&gt;& candidates) {
+    map&lt;Itemset, int&gt; itemsetCounts;
     for (const auto& transaction : transactions) {
         for (const auto& candidate : candidates) {
             if (includes(transaction.begin(), transaction.end(), candidate.begin(), candidate.end())) {
@@ -81,10 +81,10 @@ map<Itemset, int> countSupport(const vector<Itemset>& transactions, const vector
 }
 
 
-vector<Itemset> filterBySupport(const map<Itemset, int>& candidateCounts, int minSupport) {
-    vector<Itemset> frequentItemsets;
+vector&lt;Itemset&gt; filterBySupport(const map&lt;Itemset, int&gt;& candidateCounts, int minSupport) {
+    vector&lt;Itemset&gt; frequentItemsets;
     for (const auto& candidateCount : candidateCounts) {
-        if (candidateCount.second >= minSupport) {
+        if (candidateCount.second &gt;= minSupport) {
             frequentItemsets.push_back(candidateCount.first);
         }
     }
@@ -92,57 +92,57 @@ vector<Itemset> filterBySupport(const map<Itemset, int>& candidateCounts, int mi
 }
 
 // Hash-based Apriori algorithm
-void hashBasedApriori(const vector<Itemset>& transactions, int globalMinSupport, const string& outputFilename) {
+void hashBasedApriori(const vector&lt;Itemset&gt;& transactions, int globalMinSupport, const string& outputFilename) {
     ofstream outputFile(outputFilename);
 
-    map<int, int> itemCounts;
+    map&lt;int, int&gt; itemCounts;
     for (const auto& transaction : transactions) {
         for (int item : transaction) {
             itemCounts[item]++;
         }
     }
 
-    vector<Itemset> frequentItemsets;
+    vector&lt;Itemset&gt; frequentItemsets;
     for (const auto& itemCount : itemCounts) {
-        if (itemCount.second >= globalMinSupport) {
+        if (itemCount.second &gt;= globalMinSupport) {
             frequentItemsets.push_back({ itemCount.first });
         }
     }
 
-    outputFile << "Frequent 1-itemsets:\n";
+    outputFile &lt;&lt; "Frequent 1-itemsets:\n";
     for (const auto& itemset : frequentItemsets) {
         for (int item : itemset) {
-            outputFile << item << " ";
+            outputFile &lt;&lt; item &lt;&lt; " ";
         }
-        outputFile << endl;
+        outputFile &lt;&lt; endl;
     }
 
   
-    map<int, int> hashBuckets;  
-    vector<Itemset> candidates = generateHashBasedCandidates(transactions, hashBuckets, globalMinSupport);
+    map&lt;int, int&gt; hashBuckets;  
+    vector&lt;Itemset&gt; candidates = generateHashBasedCandidates(transactions, hashBuckets, globalMinSupport);
 
     
-    map<Itemset, int> candidateCounts = countSupport(transactions, candidates);
+    map&lt;Itemset, int&gt; candidateCounts = countSupport(transactions, candidates);
     frequentItemsets = filterBySupport(candidateCounts, globalMinSupport);
 
     if (!frequentItemsets.empty()) {
-        outputFile << "\nFrequent 2-itemsets:\n";
+        outputFile &lt;&lt; "\nFrequent 2-itemsets:\n";
         for (const auto& itemset : frequentItemsets) {
             for (int item : itemset) {
-                outputFile << item << " ";
+                outputFile &lt;&lt; item &lt;&lt; " ";
             }
-            outputFile << endl;
+            outputFile &lt;&lt; endl;
         }
     }
 
     outputFile.close();
-    cout << "Results saved to " << outputFilename << endl;
+    cout &lt;&lt; "Results saved to " &lt;&lt; outputFilename &lt;&lt; endl;
 }
 
 //read transactions from text file
-vector<Itemset> readTransactions(const string& filename) {
+vector&lt;Itemset&gt; readTransactions(const string& filename) {
     ifstream file(filename);
-    vector<Itemset> transactions;
+    vector&lt;Itemset&gt; transactions;
     string line;
 
     if (file.is_open()) {
@@ -150,7 +150,7 @@ vector<Itemset> readTransactions(const string& filename) {
             stringstream ss(line);
             Itemset transaction;
             int item;
-            while (ss >> item) {
+            while (ss &gt;&gt; item) {
                 transaction.insert(item);
             }
             transactions.push_back(transaction);
@@ -158,7 +158,7 @@ vector<Itemset> readTransactions(const string& filename) {
         file.close();
     }
     else {
-        cerr << "Unable to open file" << endl;
+        cerr &lt;&lt; "Unable to open file" &lt;&lt; endl;
     }
 
     return transactions;
@@ -169,12 +169,13 @@ int main() {
     string outputFilename = "output_hash.txt";
     int globalMinSupport = 10;  
 
-    vector<Itemset> transactions = readTransactions(inputFilename);
+    vector&lt;Itemset&gt; transactions = readTransactions(inputFilename);
 
     hashBasedApriori(transactions, globalMinSupport, outputFilename);
 
     return 0;
 }
+
         </pre>
     </div>
 </body>
