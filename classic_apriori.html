@@ -9,7 +9,11 @@
 <body>
     <div class="container">
         <h1>Classic Apriori Algorithm</h1>
-        <pre>
+
+<div class = "code-box">
+    <h2> apriori.cpp </h2>
+    <pre>
+        <code>
 #include "apriori.h"
 #include &lt;fstream&gt;
 #include &lt;sstream&gt;
@@ -184,7 +188,88 @@ void generateAssociationRules(const vector&lt;vector&lt;set&lt;int&gt;&gt;&gt;& 
 }
 
 
-     </pre>
+        </code>
+    </pre>
+</div>
+<div class = "code-box">
+    <h2> apriori.h</h2>
+    <pre><code>
+    
+#ifndef APRIORI_H
+#define APRIORI_H
+
+#include &lt;vector&gt;
+#include &lt;map&gt;
+#include &lt;set&gt;
+#include &lt;string&gt;
+
+using namespace std;
+
+vector&lt;vector&lt;int&gt;&gt; readDataset(const string& filename);
+vector&lt;set&lt;int&gt;&gt; generateCandidates1(const vector&lt;vector&lt;int&gt;&gt;& dataset);
+vector&lt;set&lt;int&gt;&gt; generateCandidatesNext(const vector&lt;set&lt;int&gt;&gt;& frequentItemsets);
+map&lt;set&lt;int&gt;, int&gt; countSupport(const vector&lt;set&lt;int&gt;&gt;& candidates, const vector&lt;vector&lt;int&gt;&gt;& dataset);
+vector&lt;set&lt;int&gt;&gt; pruneCandidates(const map&lt;set&lt;int&gt;, int&gt;& supportCount, int min_sup, int numTransactions);
+void apriori(const vector&lt;vector&lt;int&gt;&gt;& dataset, int min_sup, vector&lt;vector&lt;set&lt;int&gt;&gt;&gt;& frequentItemsetsPerLevel);
+void generateAssociationRules(const vector&lt;vector&lt;set&lt;int&gt;&gt;&gt;& frequentItemsetsPerLevel, double min_conf);
+
+#endif 
+
+
+    </pre></code>
+    </div>
+<div class = "code-box">
+    <h2> main.cpp</h2>
+    <pre><code>
+    #include "apriori.h"
+#include &lt;iostream&gt;
+#include &lt;ctime&gt;
+#include &lt;set&gt;
+#include &lt;vector&gt;
+
+using namespace std;
+
+void printFrequentItemsets(const vector&lt;vector&lt;set&lt;int&gt;&gt;&gt;& frequentItemsetsPerLevel) {
+    for (int i = 0; i &lt; frequentItemsetsPerLevel.size(); ++i) {
+        cout &lt;&lt; "Level " &lt;&lt; i + 1 &lt;&lt; ": " &lt;&lt; frequentItemsetsPerLevel[i].size() &lt;&lt; " frequent itemsets" &lt;&lt; endl;
+
+        for (const auto& itemset : frequentItemsetsPerLevel[i]) {
+           cout &lt;&lt; "{ ";
+            for (int item : itemset) {
+                cout &lt;&lt; item &lt;&lt; " ";
+     }
+            cout &lt;&lt; "} ";
+        }
+        cout &lt;&lt; endl;
+    }
+}
+
+int main() {
+    string filename = "data4.txt";
+
+
+
+    vector&lt;vector&lt;int&gt;&gt; dataset = readDataset(filename);
+    int min_sup = 5;
+    double min_conf = 0.5;
+
+    vector&lt;vector&lt;set&lt;int&gt;&gt;&gt; frequentItemsetsPerLevel;
+    clock_t start = clock();
+    apriori(dataset, min_sup, frequentItemsetsPerLevel);
+    clock_t end = clock();
+
+    cout &lt;&lt; "Execution time: " &lt;&lt; double(end - start) / CLOCKS_PER_SEC &lt;&lt; " seconds" &lt;&lt; endl;
+
+    printFrequentItemsets(frequentItemsetsPerLevel);
+
+    generateAssociationRules(frequentItemsetsPerLevel, min_conf);
+
+    return 0;
+}
+
+
+    </pre></code>
+    </div>  
     </div>
 </body>
 </html>
