@@ -10,23 +10,23 @@
     <div class="container">
         <h1>Hash-Based Apriori Algorithm</h1>
         <pre>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <set>
-#include <map>
-#include <unordered_map>
-#include <sstream>
-#include <algorithm>
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;vector&gt;
+#include &lt;set&gt;
+#include &lt;map&gt;
+#include &lt;unordered_map&gt;
+#include &lt;sstream&gt;
+#include &lt;algorithm&gt;
 
 using namespace std;
 
-typedef set<int> Itemset;
+typedef set&lt;int&gt; Itemset;
 
-vector<Itemset> generateCandidates(const vector<Itemset>& frequentItemsets, int k) {
-    vector<Itemset> candidates;
-    for (size_t i = 0; i < frequentItemsets.size(); ++i) {
-        for (size_t j = i + 1; j < frequentItemsets.size(); ++j) {
+vector&lt;Itemset&gt; generateCandidates(const vector&lt;Itemset&gt;& frequentItemsets, int k) {
+    vector&lt;Itemset&gt; candidates;
+    for (size_t i = 0; i &lt; frequentItemsets.size(); ++i) {
+        for (size_t j = i + 1; j &lt; frequentItemsets.size(); ++j) {
             Itemset candidate(frequentItemsets[i]);
             candidate.insert(frequentItemsets[j].begin(), frequentItemsets[j].end());
             if (candidate.size() == k) {
@@ -37,9 +37,9 @@ vector<Itemset> generateCandidates(const vector<Itemset>& frequentItemsets, int 
     return candidates;
 }
 
-map<Itemset, int> countSupport(const vector<Itemset>& transactions, const vector<Itemset>& candidates, int start, int end) {
-    map<Itemset, int> itemsetCounts;
-    for (int i = start; i < end; ++i) {
+map&lt;Itemset, int&gt; countSupport(const vector&lt;Itemset&gt;& transactions, const vector&lt;Itemset&gt;& candidates, int start, int end) {
+    map&lt;Itemset, int&gt; itemsetCounts;
+    for (int i = start; i &lt; end; ++i) {
         for (const auto& candidate : candidates) {
             if (includes(transactions[i].begin(), transactions[i].end(), candidate.begin(), candidate.end())) {
                 itemsetCounts[candidate]++;
@@ -49,33 +49,33 @@ map<Itemset, int> countSupport(const vector<Itemset>& transactions, const vector
     return itemsetCounts;
 }
 
-vector<Itemset> filterBySupport(const map<Itemset, int>& candidateCounts, int minSupport) {
-    vector<Itemset> frequentItemsets;
+vector&lt;Itemset&gt; filterBySupport(const map&lt;Itemset, int&gt;& candidateCounts, int minSupport) {
+    vector&lt;Itemset&gt; frequentItemsets;
     for (const auto& candidateCount : candidateCounts) {
-        if (candidateCount.second >= minSupport) {
+        if (candidateCount.second &gt;= minSupport) {
             frequentItemsets.push_back(candidateCount.first);
         }
     }
     return frequentItemsets;
 }
 
-void DIC(const vector<Itemset>& transactions, int globalMinSupport, int M, const string& outputFilename) {
+void DIC(const vector&lt;Itemset&gt;& transactions, int globalMinSupport, int M, const string& outputFilename) {
     ofstream outputFile(outputFilename);
 
     // Initialize pass and itemset tracking
-    vector<Itemset> frequentItemsets;
+    vector&lt;Itemset&gt; frequentItemsets;
 
     // First pass, start with frequent 1-itemsets
-    map<int, int> itemCounts;
+    map&lt;int, int&gt; itemCounts;
     int numTransactions = transactions.size();
     int intervalSize = numTransactions / M;
 
-    for (int interval = 0; interval < M; ++interval) {
+    for (int interval = 0; interval &lt; M; ++interval) {
         int start = interval * intervalSize;
         int end = (interval == M - 1) ? numTransactions : (interval + 1) * intervalSize;
 
         // Count support for 1-itemsets
-        for (int i = start; i < end; ++i) {
+        for (int i = start; i &lt; end; ++i) {
             for (int item : transactions[i]) {
                 itemCounts[item]++;
             }
@@ -83,33 +83,33 @@ void DIC(const vector<Itemset>& transactions, int globalMinSupport, int M, const
 
         // Filter 1-itemsets by support
         for (const auto& itemCount : itemCounts) {
-            if (itemCount.second >= globalMinSupport) {
+            if (itemCount.second &gt;= globalMinSupport) {
                 frequentItemsets.push_back({ itemCount.first });
             }
         }
     }
 
     // Output frequent 1-itemsets to file
-    outputFile << "Frequent 1-itemsets:\n";
+    outputFile &lt;&lt; "Frequent 1-itemsets:\n";
     for (const auto& itemset : frequentItemsets) {
         for (int item : itemset) {
-            outputFile << item << " ";
+            outputFile &lt;&lt; item &lt;&lt; " ";
         }
-        outputFile << endl;
+        outputFile &lt;&lt; endl;
     }
 
-    // Dynamic itemset introduction for k > 1
+    // Dynamic itemset introduction for k &gt; 1
     int k = 2;
     while (!frequentItemsets.empty()) {
-        vector<Itemset> candidates = generateCandidates(frequentItemsets, k);
-        map<Itemset, int> candidateCounts;
+        vector&lt;Itemset&gt; candidates = generateCandidates(frequentItemsets, k);
+        map&lt;Itemset, int&gt; candidateCounts;
 
-        for (int interval = 0; interval < M; ++interval) {
+        for (int interval = 0; interval &lt; M; ++interval) {
             int start = interval * intervalSize;
             int end = (interval == M - 1) ? numTransactions : (interval + 1) * intervalSize;
 
             // Count support for candidates in the current interval
-            map<Itemset, int> intervalCounts = countSupport(transactions, candidates, start, end);
+            map&lt;Itemset, int&gt; intervalCounts = countSupport(transactions, candidates, start, end);
 
             // Accumulate candidate counts across intervals
             for (const auto& intervalCount : intervalCounts) {
@@ -121,12 +121,12 @@ void DIC(const vector<Itemset>& transactions, int globalMinSupport, int M, const
 
             // Output frequent k-itemsets if found
             if (!frequentItemsets.empty()) {
-                outputFile << "\nFrequent " << k << "-itemsets (after interval " << interval + 1 << "):\n";
+                outputFile &lt;&lt; "\nFrequent " &lt;&lt; k &lt;&lt; "-itemsets (after interval " &lt;&lt; interval + 1 &lt;&lt; "):\n";
                 for (const auto& itemset : frequentItemsets) {
                     for (int item : itemset) {
-                        outputFile << item << " ";
+                        outputFile &lt;&lt; item &lt;&lt; " ";
                     }
-                    outputFile << endl;
+                    outputFile &lt;&lt; endl;
                 }
             }
         }
@@ -135,13 +135,13 @@ void DIC(const vector<Itemset>& transactions, int globalMinSupport, int M, const
     }
 
     outputFile.close();
-    cout << "Results saved to " << outputFilename << endl;
+    cout &lt;&lt; "Results saved to " &lt;&lt; outputFilename &lt;&lt; endl;
 }
 
 // Function to read transactions from a text file
-vector<Itemset> readTransactions(const string& filename) {
+vector&lt;Itemset&gt; readTransactions(const string& filename) {
     ifstream file(filename);
-    vector<Itemset> transactions;
+    vector&lt;Itemset&gt; transactions;
     string line;
 
     if (file.is_open()) {
@@ -149,7 +149,7 @@ vector<Itemset> readTransactions(const string& filename) {
             stringstream ss(line);
             Itemset transaction;
             int item;
-            while (ss >> item) {
+            while (ss &gt;&gt; item) {
                 transaction.insert(item);
             }
             transactions.push_back(transaction);
@@ -157,7 +157,7 @@ vector<Itemset> readTransactions(const string& filename) {
         file.close();
     }
     else {
-        cerr << "Unable to open file" << endl;
+        cerr &lt;&lt; "Unable to open file" &lt;&lt; endl;
     }
 
     return transactions;
@@ -169,7 +169,7 @@ int main() {
     int globalMinSupport = 10; 
     int M = 3;  // Number of intervals
 
-    vector<Itemset> transactions = readTransactions(inputFilename);
+    vector&lt;Itemset&gt; transactions = readTransactions(inputFilename);
 
     DIC(transactions, globalMinSupport, M, outputFilename);
 
