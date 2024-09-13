@@ -11,63 +11,31 @@ using namespace std;
 
 typedef set&lt;int&gt; Itemset;
 
-
-int hashItemset(const Itemset& itemset) {
-    int sum = 0;
-    for (int item : itemset) {
-        sum += item;
-    }
-    return sum % 40; // 40 buckets
-}
-
-
-vector&lt;Itemset&gt; generateHashBasedCandidates(const vector&lt;Itemset&gt;& transactions, map&lt;int, int&gt;& hashBuckets, int minSupport) {
-    map&lt;pair&lt;int, int&gt;, int&gt; candidateCounts;
-
-    for (const auto& transaction : transactions) {
-        vector&lt;int&gt; items(transaction.begin(), transaction.end());
-        int n = items.size();
-
-        
-        for (int i = 0; i &lt; n; ++i) {
-            for (int j = i + 1; j &lt; n; ++j) {
-                Itemset candidate = { items[i], items[j] };
-                int hashValue = hashItemset(candidate);
-                hashBuckets[hashValue]++;
-
-                candidateCounts[{items[i], items[j]}]++;
+vector&lt;Itemset&gt; generateCandidates(const vector&lt;Itemset&gt;& frequentItemsets, int k) {
+    vector&lt;Itemset&gt; candidates;
+    for (size_t i = 0; i &lt; frequentItemsets.size(); ++i) {
+        for (size_t j = i + 1; j &lt; frequentItemsets.size(); ++j) {
+            Itemset candidate(frequentItemsets[i]);
+            candidate.insert(frequentItemsets[j].begin(), frequentItemsets[j].end());
+            if (candidate.size() == k) {
+                candidates.push_back(candidate);
             }
         }
     }
-
-    
-    vector&lt;Itemset&gt; frequentItemsets;
-    for (const auto& candidate : candidateCounts) {
-        Itemset itemset = { candidate.first.first, candidate.first.second };
-        int hashValue = hashItemset(itemset);
-
-        // count exceeds the minimum support
-        if (hashBuckets[hashValue] &gt;= minSupport) {
-            frequentItemsets.push_back(itemset);
-        }
-    }
-
-    return frequentItemsets;
+    return candidates;
 }
 
-
-map&lt;Itemset, int&gt; countSupport(const vector&lt;Itemset&gt;& transactions, const vector&lt;Itemset&gt;& candidates) {
+map&lt;Itemset, int&gt; countSupport(const vector&lt;Itemset&gt;& transactions, const vector&lt;Itemset&gt;& candidates, int start, int end) {
     map&lt;Itemset, int&gt; itemsetCounts;
-    for (const auto& transaction : transactions) {
+    for (int i = start; i &lt; end; ++i) {
         for (const auto& candidate : candidates) {
-            if (includes(transaction.begin(), transaction.end(), candidate.begin(), candidate.end())) {
+            if (includes(transactions[i].begin(), transactions[i].end(), candidate.begin(), candidate.end())) {
                 itemsetCounts[candidate]++;
             }
         }
     }
     return itemsetCounts;
 }
-
 
 vector&lt;Itemset&gt; filterBySupport(const map&lt;Itemset, int&gt;& candidateCounts, int minSupport) {
     vector&lt;Itemset&gt; frequentItemsets;
@@ -79,24 +47,37 @@ vector&lt;Itemset&gt; filterBySupport(const map&lt;Itemset, int&gt;& candidateCo
     return frequentItemsets;
 }
 
-// Hash-based Apriori algorithm
-void hashBasedApriori(const vector&lt;Itemset&gt;& transactions, int globalMinSupport, const string& outputFilename) {
+void DIC(const vector&lt;Itemset&gt;& transactions, int globalMinSupport, int M, const string& outputFilename) {
     ofstream outputFile(outputFilename);
 
-    map&lt;int, int&gt; itemCounts;
-    for (const auto& transaction : transactions) {
-        for (int item : transaction) {
-            itemCounts[item]++;
-        }
-    }
-
+    // Initialize pass and itemset tracking
     vector&lt;Itemset&gt; frequentItemsets;
-    for (const auto& itemCount : itemCounts) {
-        if (itemCount.second &gt;= globalMinSupport) {
-            frequentItemsets.push_back({ itemCount.first });
+
+    // First pass, start with frequent 1-itemsets
+    map&lt;int, int&gt; itemCounts;
+    int numTransactions = transactions.size();
+    int intervalSize = numTransactions / M;
+
+    for (int interval = 0; interval &lt; M; ++interval) {
+        int start = interval * intervalSize;
+        int end = (interval == M - 1) ? numTransactions : (interval + 1) * intervalSize;
+
+        // Count support for 1-itemsets
+        for (int i = start; i &lt; end; ++i) {
+            for (int item : transactions[i]) {
+                itemCounts[item]++;
+            }
+        }
+
+        // Filter 1-itemsets by support
+        for (const auto& itemCount : itemCounts) {
+            if (itemCount.second &gt;= globalMinSupport) {
+                frequentItemsets.push_back({ itemCount.first });
+            }
         }
     }
 
+    // Output frequent 1-itemsets to file
     outputFile &lt;&lt; "Frequent 1-itemsets:\n";
     for (const auto& itemset : frequentItemsets) {
         for (int item : itemset) {
@@ -105,29 +86,47 @@ void hashBasedApriori(const vector&lt;Itemset&gt;& transactions, int globalMinSu
         outputFile &lt;&lt; endl;
     }
 
-  
-    map&lt;int, int&gt; hashBuckets;  
-    vector&lt;Itemset&gt; candidates = generateHashBasedCandidates(transactions, hashBuckets, globalMinSupport);
+    // Dynamic itemset introduction for k &gt; 1
+    int k = 2;
+    while (!frequentItemsets.empty()) {
+        vector&lt;Itemset&gt; candidates = generateCandidates(frequentItemsets, k);
+        map&lt;Itemset, int&gt; candidateCounts;
 
-    
-    map&lt;Itemset, int&gt; candidateCounts = countSupport(transactions, candidates);
-    frequentItemsets = filterBySupport(candidateCounts, globalMinSupport);
+        for (int interval = 0; interval &lt; M; ++interval) {
+            int start = interval * intervalSize;
+            int end = (interval == M - 1) ? numTransactions : (interval + 1) * intervalSize;
 
-    if (!frequentItemsets.empty()) {
-        outputFile &lt;&lt; "\nFrequent 2-itemsets:\n";
-        for (const auto& itemset : frequentItemsets) {
-            for (int item : itemset) {
-                outputFile &lt;&lt; item &lt;&lt; " ";
+            // Count support for candidates in the current interval
+            map&lt;Itemset, int&gt; intervalCounts = countSupport(transactions, candidates, start, end);
+
+            // Accumulate candidate counts across intervals
+            for (const auto& intervalCount : intervalCounts) {
+                candidateCounts[intervalCount.first] += intervalCount.second;
             }
-            outputFile &lt;&lt; endl;
+
+            // Filter candidates by support at each interval dynamically
+            frequentItemsets = filterBySupport(candidateCounts, globalMinSupport);
+
+            // Output frequent k-itemsets if found
+            if (!frequentItemsets.empty()) {
+                outputFile &lt;&lt; "\nFrequent " &lt;&lt; k &lt;&lt; "-itemsets (after interval " &lt;&lt; interval + 1 &lt;&lt; "):\n";
+                for (const auto& itemset : frequentItemsets) {
+                    for (int item : itemset) {
+                        outputFile &lt;&lt; item &lt;&lt; " ";
+                    }
+                    outputFile &lt;&lt; endl;
+                }
+            }
         }
+
+        k++;
     }
 
     outputFile.close();
     cout &lt;&lt; "Results saved to " &lt;&lt; outputFilename &lt;&lt; endl;
 }
 
-//read transactions from text file
+// Function to read transactions from a text file
 vector&lt;Itemset&gt; readTransactions(const string& filename) {
     ifstream file(filename);
     vector&lt;Itemset&gt; transactions;
@@ -154,12 +153,13 @@ vector&lt;Itemset&gt; readTransactions(const string& filename) {
 
 int main() {
     string inputFilename = "td.txt";
-    string outputFilename = "output_hash.txt";
-    int globalMinSupport = 10;  
+    string outputFilename = "output.txt";
+    int globalMinSupport = 10; 
+    int M = 3;  // Number of intervals
 
     vector&lt;Itemset&gt; transactions = readTransactions(inputFilename);
 
-    hashBasedApriori(transactions, globalMinSupport, outputFilename);
+    DIC(transactions, globalMinSupport, M, outputFilename);
 
     return 0;
 }
